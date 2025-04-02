@@ -1,0 +1,10 @@
+CREATE DATABASE  godb;
+USE godb;
+
+CREATE TABLE blog(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    content LONGTEXT NOT NULL,
+    isPublished BOOLEAN NOT NULL
+
+);
