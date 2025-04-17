@@ -46,5 +46,17 @@ func (nc *notebookControllers) newNotebook(c *gin.Context){
 func (nc *notebookControllers) GetAllNotes(c *gin.Context){
 var notebooks []models.Notebook
 
+if err := config.DB.Find(&notebooks).Error; err != nil{
+c.JSON(404, gin.H{
+"success":false, "message":"Failed to fetch notes", "notes":notebooks
+})
+return 
+}else{
+
+
+}
+
+
+
 
 }
