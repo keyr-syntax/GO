@@ -1,0 +1,87 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+)
+
+type TODO struct {
+	gorm.Model
+	Title string `json:"title"`
+	Description string `json:"description"`
+}
+
+type UserControllers struct{}
+
+func (uc *UserControllers) GetUserID(c *gin.Context){
+	id := c.Param("id")
+	c.JSON(200, gin.H{"UserID":id})
+}
+func (uc *UserControllers) WelcomeMessage(c *gin.Context){
+	c.String(200,"Welcome to GO server!")
+}
+func (uc *UserControllers) QueryFunction(c *gin.Context){
+	query := c.DefaultQuery("name","keyr")
+	c.JSON(200, gin.H{"Query: ":query})
+}
+
+
+func authenticationMiddleware() gin.HandlerFunc{
+	return func(c *gin.Context){
+		isPrivate := c.Request.URL.Path
+		if isPrivate == "/private"{
+			c.Next()
+		} else {
+			c.AbortWithStatusJSON(401,gin.H{"Message":"You are not authorized"})
+		}
+	}
+}
+
+func main() {
+	router := gin.Default()
+
+	dsn := "root:keyr@tcp(127.0.0.1:3306)/keyr?charset=utf8mb4&parseTime=True&loc=Local"
+
+	// Connect to the MySQL database
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect to MySQL database")
+	} else {
+		fmt.Println("MySQL Connection successful!")
+	}
+
+	// Auto-migrate the Todo model to create the table
+	db.AutoMigrate(&TODO{})
+
+	useController := &UserControllers{}
+
+	public := router.Group("/public")
+	{
+		public.GET("/", useController.WelcomeMessage)
+		public.GET("/:id", useController.GetUserID)
+		public.GET("/search", useController.QueryFunction)
+	}
+
+	private := router.Group("/private")
+	private.Use(authenticationMiddleware())
+	{
+		private.GET("/", func (c *gin.Context){
+			c.JSON(200, gin.H{"Message":"Welcome to Gin"})
+	
+		})
+		private.GET("/:private-id", func(c *gin.Context){
+			id := c.Param("id")
+			c.String(200, "User ID: %v",id)
+		})
+		private.GET("/private-search", func(c *gin.Context){
+			query := c.DefaultQuery("name","Keyr")
+			c.String(200, "Query: %v", query)
+		})
+	}
+
+	router.Run(":5000")
+
+}
