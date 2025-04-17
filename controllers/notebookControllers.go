@@ -41,3 +41,10 @@ func (nc *notebookControllers) newNotebook(c *gin.Context){
     }
 
 }
+
+
+func (nc *notebookControllers) GetAllNotes(c *gin.Context){
+var notebooks []models.Notebook
+
+
+}
